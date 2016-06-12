@@ -1,4 +1,7 @@
+#include "Window.h"
 #include <iostream>
-void main() {
-	std::cout << "Hello SimpleQuest world" << std::endl;
+
+int main() {
+    Window wnd;
+    return wnd.exec();
 }

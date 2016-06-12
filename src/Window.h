@@ -3,19 +3,24 @@
 
 #include "Geom.h"
 
+#include <memory>
 #include <string>
 
 namespace {
 struct WindowPrivate;
 }
 
+enum MouseButton {
+    Left,
+    Right
+};
+
 class Window {
 public:
-    Window(std::string title = "Window", const RectI& rect = { 0, 0, 800, 600 });
-    Window(std::string title, int x, int y, int width, int height);
-    Window(std::string title, int width, int height);
-    virtual ~Window();
+    static void setInitParams(std::string title, const RectI& rect);
+    static Window& singleton();
 
+    void show();
     int exec();
     void* handle() const;
 
@@ -33,10 +38,26 @@ public:
     void setRect(int x, int y, int width, int height);
 
 private:
+    struct Deleter {
+        void operator()(Window* wnd) {
+            delete wnd;
+        }
+    };
+
+    static std::string s_initTitle;
+    static RectI s_initRect;
+    static std::unique_ptr<Window, Deleter> s_instance;
+
     // Implementation specific
     ::WindowPrivate* m_impl;
 
-    void initialize(std::string title, const RectI& rect);
+    Window(std::string title, const RectI& rect);
+    Window(const Window&);
+    ~Window();
+    Window& operator=(const Window&);
+
+    void loopEvent() { }
+    void keyPressEvent() { }
 };
 
 #endif // Window_h

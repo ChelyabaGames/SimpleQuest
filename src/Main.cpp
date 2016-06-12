@@ -1,7 +1,6 @@
 #include "Window.h"
-#include <iostream>
 
 int main() {
-    Window wnd;
-    return wnd.exec();
+    Window::setInitParams("Direct3D", { 0, 0, 1280, 720 });
+    return Window::singleton().exec();
 }

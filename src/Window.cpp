@@ -8,6 +8,7 @@ namespace {
 struct WindowPrivate {
     HWND handle;
     WNDCLASSEX cls;
+    DWORD winStyle;
 };
 
 LRESULT CALLBACK wndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -23,23 +24,23 @@ LRESULT CALLBACK wndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 } // namespace
 
 std::string Window::s_initTitle = "Window";
-RectI Window::s_initRect = { 0, 0, 800, 600 };
+SizeI Window::s_initSize = { 800, 600 };
 std::unique_ptr<Window, Window::Deleter> Window::s_instance;
 
-void Window::setInitParams(std::string title, const RectI& rect)
+void Window::setInitParams(std::string title, const SizeI& size)
 {
     s_initTitle = title;
-    s_initRect = rect;
+    s_initSize = size;
 }
 
 Window& Window::singleton()
 {
     if (!s_instance)
-        s_instance.reset(new Window(s_initTitle, s_initRect));
+        s_instance.reset(new Window(s_initTitle, s_initSize));
     return *s_instance;
 }
 
-Window::Window(std::string title, const RectI& rect)
+Window::Window(std::string title, const SizeI& size)
     : m_impl(nullptr)
 {
     m_impl = new ::WindowPrivate;
@@ -52,14 +53,19 @@ Window::Window(std::string title, const RectI& rect)
     m_impl->cls.hCursor = LoadCursor(nullptr, IDC_ARROW);
     m_impl->cls.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW);
     m_impl->cls.lpszClassName = "MainWindow";
-
     RegisterClassEx(&m_impl->cls);
 
+    m_impl->winStyle = WS_OVERLAPPEDWINDOW ^ WS_SIZEBOX;
+    RECT winRect = { 0, 0, size.width, size.height };
+    AdjustWindowRect(&winRect, m_impl->winStyle, false);
     m_impl->handle = CreateWindowEx(0,
         "MainWindow",
         title.c_str(),
-        WS_OVERLAPPEDWINDOW ^ WS_SIZEBOX,
-        rect.x, rect.y, rect.width, rect.height,
+        m_impl->winStyle,
+        CW_USEDEFAULT,
+        0,
+        winRect.right - winRect.left,
+        winRect.bottom - winRect.top,
         nullptr, nullptr,
         m_impl->cls.hInstance,
         nullptr);
@@ -87,7 +93,6 @@ int Window::exec()
         }
         if (msg.message == WM_QUIT)
             break;
-        loopEvent();
     }
     return msg.wParam;
 }
@@ -114,17 +119,19 @@ void Window::setTitle(const std::string& title)
 
 Point2DI Window::pos() const
 {
-    RECT rect;
-    GetWindowRect(m_impl->handle, &rect);
-    return { rect.left, rect.top };
+    POINT winPoint = { 0, 0 };
+    ClientToScreen(m_impl->handle, &winPoint);
+    return { winPoint.x, winPoint.y };
 }
 
 void Window::setPos(const Point2DI& pos)
 {
+    RECT winRect = { pos.x, pos.y, 0, 0 };
+    AdjustWindowRect(&winRect, m_impl->winStyle, false);
     SetWindowPos(m_impl->handle,
         HWND_TOP,
-        pos.x,
-        pos.y,
+        winRect.left,
+        winRect.top,
         0, 0,
         SWP_NOSIZE);
 }
@@ -134,36 +141,55 @@ void Window::setPos(int x, int y)
     setPos({ x, y });
 }
 
-void Window::setSize(int width, int height)
+SizeI Window::size() const
 {
+    RECT winRect;
+    GetClientRect(m_impl->handle, &winRect);
+    RectI rect = { 0, 0, winRect.right, winRect.bottom };
+    return rect.size();
+}
+
+void Window::resize(const SizeI& size)
+{
+    RECT winRect = { 0, 0, size.width, size.height };
+    AdjustWindowRect(&winRect, m_impl->winStyle, false);
     SetWindowPos(m_impl->handle,
         HWND_TOP,
         0, 0,
-        width,
-        height,
+        winRect.right - winRect.left,
+        winRect.bottom - winRect.top,
         SWP_NOMOVE);
+}
+
+void Window::resize(int width, int height)
+{
+    resize({ width, height });
 }
 
 RectI Window::rect() const
 {
-    RECT rect;
-    GetWindowRect(m_impl->handle, &rect);
+    POINT winPoint = { 0, 0 };
+    ClientToScreen(m_impl->handle, &winPoint);
+    RECT winRect;
+    GetClientRect(m_impl->handle, &winRect);
     return {
-        rect.left,
-        rect.top,
-        rect.right - rect.left,
-        rect.bottom - rect.top
+        winPoint.x,
+        winPoint.y,
+        winPoint.x + winRect.right,
+        winPoint.y + winRect.bottom
     };
 }
 
 void Window::setRect(const RectI& rect)
 {
+    RECT winRect = { rect.left, rect.top, rect.right, rect.bottom };
+    AdjustWindowRect(&winRect, m_impl->winStyle, false);
     SetWindowPos(m_impl->handle,
         HWND_TOP,
-        rect.x,
-        rect.y,
-        rect.width,
-        rect.height,
+        winRect.left,
+        winRect.top,
+        winRect.right - winRect.left,
+        winRect.bottom - winRect.top,
         0);
 }
 

@@ -17,7 +17,7 @@ enum MouseButton {
 
 class Window {
 public:
-    static void setInitParams(std::string title, const RectI& rect);
+    static void setInitParams(std::string title, const SizeI& size);
     static Window& singleton();
 
     void show();
@@ -31,7 +31,9 @@ public:
     void setPos(const Point2DI&);
     void setPos(int x, int y);
 
-    void setSize(int width, int height);
+    SizeI size() const;
+    void resize(const SizeI&);
+    void resize(int width, int height);
 
     RectI rect() const;
     void setRect(const RectI&);
@@ -45,19 +47,16 @@ private:
     };
 
     static std::string s_initTitle;
-    static RectI s_initRect;
+    static SizeI s_initSize;
     static std::unique_ptr<Window, Deleter> s_instance;
 
     // Implementation specific
     ::WindowPrivate* m_impl;
 
-    Window(std::string title, const RectI& rect);
+    Window(std::string title, const SizeI& size);
     Window(const Window&);
     ~Window();
     Window& operator=(const Window&);
-
-    void loopEvent() { }
-    void keyPressEvent() { }
 };
 
 #endif // Window_h

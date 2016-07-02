@@ -1,15 +1,21 @@
 #include "config.h"
 #include "Window.h"
 
+#include "Renderer.h"
+
 #include <Windows.h>
 
-namespace {
+namespace impl {
 
-struct WindowPrivate {
+struct Window {
     HWND handle;
     WNDCLASSEX cls;
     DWORD winStyle;
 };
+
+}
+
+namespace {
 
 LRESULT CALLBACK wndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -41,9 +47,9 @@ Window& Window::singleton()
 }
 
 Window::Window(std::string title, const SizeI& size)
-    : m_impl(nullptr)
+    : m_impl(new impl::Window)
+    , m_renderer(nullptr)
 {
-    m_impl = new ::WindowPrivate;
     ZeroMemory(&m_impl->cls, sizeof(WNDCLASSEX));
 
     m_impl->cls.cbSize = sizeof(WNDCLASSEX);
@@ -73,8 +79,7 @@ Window::Window(std::string title, const SizeI& size)
 
 Window::~Window()
 {
-    if (m_impl)
-        delete m_impl;
+    delete m_impl;
 }
 
 void Window::show()
@@ -84,6 +89,8 @@ void Window::show()
 
 int Window::exec()
 {
+    if (!m_renderer)
+        throw std::runtime_error("NULL renderer");
     show();
     MSG msg;
     while (true) {
@@ -195,5 +202,13 @@ void Window::setRect(const RectI& rect)
 
 void Window::setRect(int x, int y, int width, int height)
 {
-    setRect({ x, y, width, height });
+    setRect({ x, y, x + width, y + height });
+}
+
+void Window::connect(Renderer* renderer)
+{
+    if (m_renderer != renderer) {
+        m_renderer = renderer;
+        renderer->connect(this);
+    }
 }

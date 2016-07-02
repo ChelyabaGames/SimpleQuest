@@ -6,15 +6,11 @@
 #include <memory>
 #include <string>
 
-namespace {
-struct WindowPrivate;
+namespace impl {
+struct Window;
 }
 
-enum MouseButton {
-    Left,
-    Right
-};
-
+class Renderer;
 class Window {
 public:
     static void setInitParams(std::string title, const SizeI& size);
@@ -39,6 +35,8 @@ public:
     void setRect(const RectI&);
     void setRect(int x, int y, int width, int height);
 
+    void connect(Renderer*);
+
 private:
     struct Deleter {
         void operator()(Window* wnd) {
@@ -51,7 +49,9 @@ private:
     static std::unique_ptr<Window, Deleter> s_instance;
 
     // Implementation specific
-    ::WindowPrivate* m_impl;
+    impl::Window* m_impl;
+
+    Renderer *m_renderer;
 
     Window(std::string title, const SizeI& size);
     Window(const Window&);

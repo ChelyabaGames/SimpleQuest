@@ -26,17 +26,21 @@ struct Renderer {
 
 namespace {
 
-void initializeD3D(impl::Renderer* impl, HWND hWnd)
+void initializeD3D(impl::Renderer* impl, Window* wnd)
 {
     // Инициализация Direct3D
     DXGI_SWAP_CHAIN_DESC scd;
     ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
+
     scd.BufferCount = 1; // двойная буферизация
     scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    scd.BufferDesc.Width = wnd->width();
+    scd.BufferDesc.Height = wnd->height();
     scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scd.OutputWindow = hWnd;
+    scd.OutputWindow = static_cast<HWND>(wnd->handle());
     scd.SampleDesc.Count = 4;
     scd.Windowed = true;
+    scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     D3D11CreateDeviceAndSwapChain(nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
@@ -62,6 +66,8 @@ void initializeD3D(impl::Renderer* impl, HWND hWnd)
 
 void finalizeD3D(impl::Renderer* impl)
 {
+    impl->swapChain->SetFullscreenState(false, nullptr);
+
     impl->swapChain->Release();
     impl->backBuffer->Release();
     impl->device->Release();
@@ -87,7 +93,7 @@ void Renderer::connect(Window* window)
     if (m_window != window) {
         m_window = window;
         window->connect(this);
-        ::initializeD3D(m_impl, static_cast<HWND>(window->handle()));
+        ::initializeD3D(m_impl, m_window);
         setupViewport();
     }
 }

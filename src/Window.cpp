@@ -11,6 +11,13 @@ struct Window {
     HWND handle;
     WNDCLASSEX cls;
     DWORD winStyle;
+
+    RECT clientRect() const
+    {
+        RECT rect;
+        GetClientRect(handle, &rect);
+        return rect;
+    }
 };
 
 }
@@ -100,6 +107,7 @@ int Window::exec()
         }
         if (msg.message == WM_QUIT)
             break;
+        m_renderer->draw();
     }
     return msg.wParam;
 }
@@ -150,10 +158,18 @@ void Window::setPos(int x, int y)
 
 SizeI Window::size() const
 {
-    RECT winRect;
-    GetClientRect(m_impl->handle, &winRect);
-    RectI rect = { 0, 0, winRect.right, winRect.bottom };
-    return rect.size();
+    RECT winRect = m_impl->clientRect();
+    return { winRect.right, winRect.bottom };
+}
+
+int Window::width() const
+{
+    return m_impl->clientRect().right;
+}
+
+int Window::height() const
+{
+    return m_impl->clientRect().bottom;
 }
 
 void Window::resize(const SizeI& size)

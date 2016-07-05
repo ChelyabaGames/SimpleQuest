@@ -28,6 +28,8 @@ public:
     void setPos(int x, int y);
 
     SizeI size() const;
+    int width() const;
+    int height() const;
     void resize(const SizeI&);
     void resize(int width, int height);
 

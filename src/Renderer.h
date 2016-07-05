@@ -12,8 +12,11 @@ public:
     ~Renderer();
 
     void connect(Window*);
+    void draw();
 
 private:
+    void setupViewport();
+
     impl::Renderer* m_impl;
     Window *m_window;
 };

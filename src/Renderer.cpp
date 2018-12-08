@@ -28,11 +28,11 @@ namespace {
 
 void initializeD3D(impl::Renderer* impl, Window* wnd)
 {
-    // Инициализация Direct3D
+    // Direct3D initializarion
     DXGI_SWAP_CHAIN_DESC scd;
     ZeroMemory(&scd, sizeof(DXGI_SWAP_CHAIN_DESC));
 
-    scd.BufferCount = 1; // двойная буферизация
+    scd.BufferCount = 1; // one back buffer
     scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     scd.BufferDesc.Width = wnd->width();
     scd.BufferDesc.Height = wnd->height();
@@ -55,7 +55,7 @@ void initializeD3D(impl::Renderer* impl, Window* wnd)
         nullptr,
         &impl->context);
 
-    // Задание цели рендера
+    // Set render target
     ID3D11Texture2D* backBufferTexture;
     impl->swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
     impl->device->CreateRenderTargetView(backBufferTexture, nullptr, &impl->backBuffer);
@@ -106,7 +106,7 @@ void Renderer::draw()
 
 void Renderer::setupViewport()
 {
-    // Настройка видового окна
+    // Viewport setup
     D3D11_VIEWPORT viewport;
     ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 

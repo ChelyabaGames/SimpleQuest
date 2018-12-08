@@ -50,7 +50,6 @@ private:
     static SizeI s_initSize;
     static std::unique_ptr<Window, Deleter> s_instance;
 
-    // Implementation specific
     impl::Window* m_impl;
 
     Renderer *m_renderer;

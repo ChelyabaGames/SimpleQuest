@@ -66,7 +66,6 @@ Window::Window(std::string title, const SizeI& size)
     m_impl->cls.lpfnWndProc = ::wndProc;
     m_impl->cls.hInstance = GetModuleHandle(nullptr);
     m_impl->cls.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    // m_impl->cls.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW);
     m_impl->cls.lpszClassName = "MainWindow";
     RegisterClassEx(&m_impl->cls);
 

@@ -5,6 +5,8 @@
 
 #include <Windows.h>
 
+#include <vector>
+
 namespace impl {
 
 struct Window {
@@ -120,11 +122,9 @@ void* Window::handle() const
 std::string Window::title() const
 {
     int len = GetWindowTextLength(m_impl->handle);
-    std::string ans;
-    ans.reserve(len + 1);
-    ans.resize(len);
-    GetWindowText(m_impl->handle, &ans[0], len + 1);
-    return ans;
+    std::vector<char> buffer(len + 1); // 1 extra item for null character
+    GetWindowText(m_impl->handle, buffer.data(), buffer.size());
+    return std::string(buffer.data());
 }
 
 void Window::setTitle(const std::string& title)
